@@ -1,0 +1,109 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+library("corrplot")
+```
+
+
+```{r}
+# data = decathlon2[1:23, 1:10]
+data = read.csv('C:/Users/Papa Ba GAYE/Documents/data_analysis_197_cowpea_varieties-master/197 variétés de niébé.csv')
+data
+```
+```{r}
+summary(data) # Quelques statistiques descriptives
+```
+
+
+```{r}
+# is.na(data)
+index_val_manq<- which(is.na(data),arr.ind=TRUE)[,1] # recuperer les indexes des valeus manquantes
+index_val_manq
+
+data <- data[-index_val_manq,] # supressions des valeus manquantes
+data
+```
+
+
+```{r Fig1, echo=FALSE, fig.height=10, fig.width=15}
+pairs(data, pch = 19)
+```
+
+
+```{r Fig1, echo=FALSE, fig.height=10, fig.width=15}
+matrice_correlation = cor(data)
+corrplot(matrice_correlation, is.corr = FALSE)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+```{r}
+data_scale = as.data.frame(scale(data)) # dataset normalisé
+res.pca <- PCA(data_scale, graph = FALSE)
+print(res.pca)
+```
+
+
+```{r}
+mean(data_scale$DS50F) # moyenne centrée
+```
+
+
+```{r}
+sd(data_scale$DS50F) # ecart type reduit
+```
+
+
+```{r}
+eig.val <- get_eigenvalue(res.pca)
+round(eig.val, 2)
+```
+
+
+```{r Fig1, echo=FALSE, fig.height=7, fig.width=15}
+fviz_eig(res.pca, addlabels = TRUE, ylim=c(0, 50))
+```
+
+
+```{r}
+var = get_pca_var(res.pca)# Extraction des résultats pour les variables.
+
+ind = get_pca_ind(res.pca)# Extraction des résultats pour les variables.
+```
+
+
+```{r Fig1, echo=FALSE, fig.height=7, fig.width=10}
+corrplot(var$cos2, is.corr=TRUE)
+```
+
+
+```{r Fig1, echo=FALSE, fig.height=10, fig.width=15}
+fviz_pca_var(res.pca, col.var = "cos2", gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)
+fviz_pca_ind(res.pca, col.ind = "cos2", gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)
+```
+
+
+```{r Fig1, echo=FALSE, fig.height=10, fig.width=15}
+fviz_contrib(res.pca, choice = "var", axes = 1) # variables dimension 1
+fviz_contrib(res.pca, choice = "var", axes = 2) # variables dimension 2
+fviz_contrib(res.pca, choice = "var", axes = c(1, 2)) # variables dimensions 1 et 2
+```
+
+
+```{r Fig1, echo=FALSE, fig.height=7, fig.width=15}
+fviz_contrib(res.pca, col.ind = "cos2", choice = "ind", axes = 1) # induvidus dimension 1
+fviz_contrib(res.pca, col.ind = "cos2", choice = "ind", axes = 2) # induvidus dimension 2
+fviz_contrib(res.pca, col.ind = "cos2", choice = "ind", axes = c(1, 2)) # induvidusdimensions 1 et 2
+```
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
