@@ -128,10 +128,14 @@ LRT_dev(model10, model9)
 
 ```{r}
 #model <- lm(Pedigree ~., data = data)
-model <- lm(Pedigree ~1, data = data)
+model <- lm(Pedigree ~ 1, data = data)
+model = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL + ML15G + MNL15G + Poids100g, data = data)
 step.model <- stepAIC(model, direction = "both")
+```
 
-summary(step.model)
+
+```{r}
+#summary(step.model)
 ```
 
 
