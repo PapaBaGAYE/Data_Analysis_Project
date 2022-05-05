@@ -1,0 +1,137 @@
+---
+title: "Selection de variables"
+author: "Papa Ba GAYE"
+date: "15/03/2022"
+output: html_document
+---
+
+
+```{r}
+library("MASS")
+library("randomForest")
+library("VSURF")
+
+library(FactoMineR)
+library(factoextra)
+library("corrplot")
+
+data(swiss)
+head(swiss)
+swiss
+```
+
+
+```{r}
+data = read.csv('C:/Users/Papa Ba GAYE/Documents/data_analysis_197_cowpea_varieties-master/197 variétés de niébé.csv')
+data
+```
+
+
+```{r}
+summary(data)
+```
+```{r}
+pairs(data, pch = 19)
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+index_val_manq<- which(is.na(data),arr.ind=TRUE)[,1] # recuperer les indexes des valeus manquantes
+index_val_manq
+
+data <- data[-index_val_manq,] # supressions des valeus manquantes
+data
+library("corrplot")
+cor_mat = cor(data)
+corrplot(cor_mat, is.corr=TRUE)
+```
+
+
+```{r}
+LRT_dev = function(mod1, mod2){
+  1 - pchisq(deviance(mod1) - deviance(mod2), df.residual(mod1) - df.residual(mod2))
+}
+```
+
+
+```{r}
+# ------------------------DIRECTION ASCENDANTE------------------------------------
+model0 = lm(Pedigree ~ 1, data = data)
+model1 = lm(Pedigree ~ DS50F, data = data)
+LRT_dev(model0, model1)
+
+model2 = lm(Pedigree ~ DS50F + DS1G, data = data)
+LRT_dev(model1, model2)
+
+
+model3 = lm(Pedigree ~ DS50F + DS1G + B3PLT, data = data)
+LRT_dev(model2, model3)
+
+model4 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M, data = data)
+LRT_dev(model3, model4)
+
+model5 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF, data = data)
+LRT_dev(model4, model5)
+
+model6 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG, data = data)
+LRT_dev(model5, model6)
+
+model7 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL, data = data)
+LRT_dev(model6, model7)
+
+model8 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL + ML15G, data = data)
+LRT_dev(model7, model8)
+
+model9 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL + ML15G + MNL15G, data = data)
+LRT_dev(model8, model9)
+
+model10 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL + ML15G + MNL15G + Poids100g, data = data)
+LRT_dev(model9, model10)
+```
+
+
+```{r}
+# ------------------------DIRECTION DESCENDANTE------------------------------------
+
+model0 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL + ML15G + MNL15G + Poids100g, data = data)
+model1 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL + ML15G + MNL15G, data = data)
+LRT_dev(model1, model0)
+
+model2 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL + ML15G, data = data)
+LRT_dev(model2, model1)
+
+model3 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL, data = data)
+LRT_dev(model3, model2)
+
+model4 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG, data = data)
+LRT_dev(model4, model3)
+
+model5 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG, data = data)
+LRT_dev(model5, model4)
+
+model6 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF, data = data)
+LRT_dev(model6, model5)
+
+model7 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M, data = data)
+LRT_dev(model7, model5)
+
+model8 = lm(Pedigree ~ DS50F + DS1G + B3PLT, data = data)
+LRT_dev(model8, model7)
+
+model9 = lm(Pedigree ~ DS50F + DS1G, data = data)
+LRT_dev(model9, model8)
+
+model10 = lm(Pedigree ~ DS50F , data = data)
+LRT_dev(model10, model9)
+```
+
+```{r}
+#model <- lm(Pedigree ~., data = data)
+model <- lm(Pedigree ~1, data = data)
+step.model <- stepAIC(model, direction = "both")
+
+summary(step.model)
+```
+
+
