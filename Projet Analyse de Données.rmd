@@ -1,0 +1,276 @@
+---
+title: "Projet Analyse de données"
+author: "Papa Ba GAYE"
+date: "15/03/2022"
+output: html_document
+---
+
+
+```{r}
+library("MASS")
+library("randomForest")
+library("VSURF")
+
+library(FactoMineR)
+library(factoextra)
+library("corrplot")
+```
+
+
+```{r}
+data = read.csv('C:/Users/Papa Ba GAYE/Documents/data_analysis_197_cowpea_varieties-master/197 variétés de niébé.csv')
+data
+```
+
+
+```{r}
+summary(data)
+```
+
+```{r}
+pairs(data, pch = 19)
+```
+
+
+```{r Fig1, echo=FALSE, fig.height=10, fig.width=15}
+matrice_correlation = cor(data)
+corrplot(matrice_correlation, is.corr = FALSE)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+index_val_manq<- which(is.na(data),arr.ind=TRUE)[,1] # recuperer les indexes des valeus manquantes
+index_val_manq
+
+data <- data[-index_val_manq,] # supressions des valeus manquantes
+data
+library("corrplot")
+cor_mat = cor(data)
+corrplot(cor_mat, is.corr=TRUE)
+```
+
+
+```{r}
+data_scale = as.data.frame(scale(data)) # dataset normalisé
+res.pca <- PCA(data_scale, graph = FALSE)
+print(res.pca)
+```
+
+
+```{r}
+mean(data_scale$DS50F) # moyenne centrée
+sd(data_scale$DS50F) # ecart type
+```
+
+
+```{r}
+eig.val <- get_eigenvalue(res.pca)
+round(eig.val, 2)
+```
+
+
+```{r Fig1, echo=FALSE, fig.height=7, fig.width=15}
+fviz_eig(res.pca, addlabels = TRUE, ylim=c(0, 50))
+```
+
+
+```{r}
+var = get_pca_var(res.pca)# Extraction des résultats pour les variables.
+ind = get_pca_ind(res.pca)# Extraction des résultats pour les individus.
+```
+
+
+```{r Fig1, echo=FALSE, fig.height=7, fig.width=10}
+corrplot(var$cos2, is.corr=TRUE)
+```
+
+
+```{r Fig1, echo=FALSE, fig.height=10, fig.width=15}
+fviz_pca_var(res.pca, col.var = "cos2", gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)
+fviz_pca_ind(res.pca, col.ind = "cos2", gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), repel = TRUE)
+```
+
+
+```{r Fig1, echo=FALSE, fig.height=7, fig.width=15}
+fviz_contrib(res.pca, choice = "var", axes = 1) # variables dimension 1
+fviz_contrib(res.pca, choice = "var", axes = 2) # variables dimension 2
+fviz_contrib(res.pca, choice = "var", axes = c(1, 2)) # variables dimensions 1 et 2
+```
+
+
+```{r Fig1, echo=FALSE, fig.height=7, fig.width=15}
+fviz_contrib(res.pca, col.ind = "cos2", choice = "ind", axes = 1) # induvidus dimension 1
+fviz_contrib(res.pca, col.ind = "cos2", choice = "ind", axes = 2) # induvidus dimension 2
+fviz_contrib(res.pca, col.ind = "cos2", choice = "ind", axes = c(1, 2)) # induvidusdimensions 1 et 2
+```
+
+
+```{r}
+LRT_dev = function(mod1, mod2){
+  1 - pchisq(deviance(mod1) - deviance(mod2), df.residual(mod1) - df.residual(mod2))
+}
+```
+
+
+```{r}
+# ------------------------DIRECTION ASCENDANTE------------------------------------
+model0 = lm(Pedigree ~ 1 , data = data)
+model1 = lm(Pedigree ~ DS50F, data = data)
+LRT_dev(model0, model1)
+
+model2 = lm(Pedigree ~ DS50F + DS1G, data = data)
+LRT_dev(model1, model2)
+
+
+model3 = lm(Pedigree ~ DS50F + DS1G + B3PLT, data = data)
+LRT_dev(model2, model3)
+
+model4 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M, data = data)
+LRT_dev(model3, model4)
+
+model5 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF, data = data)
+LRT_dev(model4, model5)
+
+model6 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG, data = data)
+LRT_dev(model5, model6)
+
+model7 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL, data = data)
+LRT_dev(model6, model7)
+
+model8 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL + ML15G, data = data)
+LRT_dev(model7, model8)
+
+model9 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL + ML15G + MNL15G, data = data)
+LRT_dev(model8, model9)
+
+model10 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL + ML15G + MNL15G + Poids100g, data = data)
+LRT_dev(model9, model10)
+```
+
+
+```{r}
+# ------------------------DIRECTION DESCENDANTE------------------------------------
+
+model0 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL + ML15G + MNL15G + Poids100g, data = data)
+model1 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL + ML15G + MNL15G, data = data)
+LRT_dev(model1, model0)
+
+model2 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL + ML15G, data = data)
+LRT_dev(model2, model1)
+
+model3 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG + DSL, data = data)
+LRT_dev(model3, model2)
+
+model4 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF + DSFFG, data = data)
+LRT_dev(model4, model3)
+
+model5 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M + DS1ereF, data = data)
+LRT_dev(model5, model4)
+
+model6 = lm(Pedigree ~ DS50F + DS1G + B3PLT + DS95M, data = data)
+LRT_dev(model6, model5)
+
+model7 = lm(Pedigree ~ DS50F + DS1G + B3PLT, data = data)
+LRT_dev(model7, model6)
+
+model8 = lm(Pedigree ~ DS50F + DS1G, data = data)
+LRT_dev(model8, model7)
+
+model9 = lm(Pedigree ~ DS50F, data = data)
+LRT_dev(model9, model8)
+
+model10 = lm(Pedigree ~ 1, data = data)
+LRT_dev(model10, model9)
+```
+
+```{r}
+model <- lm(Pedigree ~., data = data)
+step.model <- stepAIC(model, direction = "both")
+```
+
+
+```{r}
+model <- lm(Pedigree ~., data = data)
+model
+```
+
+
+```{r}
+summary(model)
+```
+
+
+```{r}
+library(olsrr)
+```
+
+
+```{r}
+ols_step_forward_p(model, penter=0.05)
+```
+
+
+```{r}
+```
+
+
+```{r}
+ols_step_backward_p(model, prem = 0.05)
+```
+
+
+```{r}
+ols_step_both_p(model, penter=0.05)
+```
+
+
+```{r}
+#summary(step.model)
+```
+
+
+```{r}
+data.rf <- randomForest(Pedigree ~ ., data=data, importance=TRUE, proximity=TRUE)
+data.rf
+```
+
+
+```{r}
+round(importance(data.rf), 2)
+```
+
+
+```{r}
+library(VSURF)
+rf_vs = randomForest(Pedigree ~ .,data=data,mtry=2,ntree=500,importance=TRUE)
+varImpPlot(rf_vs,type=1,pch=20, col=1, cex=1,main="Selection de variables avec randomForest")
+```
+
+
+```{r}
+X = data[,-1]
+y = data$Pedigree
+
+th_1 = VSURF_thres(X, y, ntree=500)
+```
+
+```{r}
+vs_1 = VSURF_interp(X, y,vars=th_1$varselect.thres)
+```
+
+
+```{r}
+plot(vs_1)
+```
+
+
+```{r}
+vs_1$varselect.interp
+```
+
+
+```{r}
+names(X)[vs_1$varselect.interp]
+```
+
+
